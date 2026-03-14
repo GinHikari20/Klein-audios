@@ -1,0 +1,37 @@
+name: Update Audio Assets
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'N2_audios/**' # Folder နာမည် အမှန်
+
+permissions:
+  contents: write
+
+jobs:
+  update-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # အဆင့် (၁) - Checksum ထုတ်ခြင်း
+      - name: Generate Checksums
+        run: |
+          cd N2_audios 
+          # mp3 နဲ့ m4a ဖိုင်အားလုံးကို hash တွက်ပြီး checksums.txt ထဲ သိမ်းမယ်
+          sha256sum *.mp3 > ../checksums.txt
+          cd ..
+
+      # အဆင့် (၂) - Release Asset အဖြစ် တင်ခြင်း
+      - name: Update 'Latest' Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: "latest"
+          name: "Production Audio Assets"
+          body: "Automated build of the latest audio assets including SHA-256 checksums."
+          allowUpdates: true
+          replacesArtifacts: true
+          # Artifacts နေရာမှာ N2_audios လို့ ပြောင်းပေးရပါမယ်
+          artifacts: "N2_audios/*.mp3,checksums.txt"
+          token: ${{ secrets.GITHUB_TOKEN }}
